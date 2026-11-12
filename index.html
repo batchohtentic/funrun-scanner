@@ -176,20 +176,22 @@
       '<div id="camwrap" class="form">' + camHtml() + '</div>' +
       '<div id="result" aria-live="polite">' + resultHtml() + '</div>' +
       '<div id="pending">' + pendingHtml() + '</div>' +
+      '<div id="scanhint" class="muted" style="text-align:center;font-size:13px">' + scanHint() + '</div>' +
       '<form id="f-bib" class="form card" autocomplete="off"><label for="bib">Or type the bib number</label>' +
       '<input id="bib" class="bib" type="text" inputmode="numeric" maxlength="300" placeholder="0000">' +
       '<button class="go" type="submit">' + (st.type === 'finish' ? 'Confirm finish' : st.type === 'start' ? 'Check in at the start' : 'Confirm check-in') + '</button></form>' +
-      '<b>Recent scans on this phone</b><div class="recent" id="recent">' + recentHtml() + '</div>';
+      '<b>Recent scans on this phone</b><div class="recent" id="recent">' + recentHtml() + '</div>' +
+      '<div id="clear" class="form">' + clearHtml() + '</div>';
     if (CAM.on) attachVideo();
   }
 
   // ---------- results ----------
   var LABEL = {
-    PENDING: ['', '⏳ Bib {b} – sending…'], OK: ['good', '✅ Bib {b} checked in'], FINISHED: ['good', '🏁 Bib {b} finished'],
+    PENDING: ['', '📥 Bib {b} saved on this phone – sending…'], OK: ['good', '✅ Bib {b} checked in'], FINISHED: ['good', '🏁 Bib {b} finished'],
     STARTED: ['good', '🟢 Bib {b} checked in at the start'], FINISHED_NO_TURN: ['warn', '⚠️ Bib {b} finished – no turning point record'],
     DUPLICATE: ['warn', '⚠️ Bib {b} was already checked in here'], DUPLICATE_FINISH: ['warn', '⚠️ Bib {b} already finished'],
     DUPLICATE_START: ['warn', '⚠️ Bib {b} already checked in at the start'], WRONG_CATEGORY: ['bad', '⚠️ Wrong turning point for bib {b}'],
-    NOT_REGISTERED: ['bad', '❌ Bib {b} is not registered'], INVALID_QR: ['bad', '❌ Fake or old QR on bib {b} – NOT counted'],
+    NOT_REGISTERED: ['bad', '❌ Bib {b} is not registered'], INVALID_QR: ['bad', '❌ Fake or old QR / barcode on bib {b} – NOT counted'],
     UNDONE: ['', '↩️ Bib {b} – undone'], ERROR: ['bad', '❌ Bib {b} not saved']
   };
 
@@ -208,7 +210,7 @@
       e.code === 'ERROR' ? (e.error || '') :
       e.code === 'WRONG_CATEGORY' ? 'This runner is in ' + (e.cat || 'another category') + '. Point them to the right turning point.' :
       e.code === 'INVALID_QR' ? 'Check the runner. If the bib number is right, type it by hand and tell the race director.' :
-      warn ? '⚠️ ' + e.warnings.join(' · ') : (e.clock ? (e.qr === 'valid' ? '🔒 QR verified · ' : '') + 'Recorded at ' + e.clock : '');
+      warn ? '⚠️ ' + e.warnings.join(' · ') : (e.clock ? (e.qr === 'valid' ? '🔒 Bib code verified · ' : '') + 'Recorded at ' + e.clock : '');
     return '<div class="result ' + (warn && l[0] === 'good' ? 'warn' : l[0]) + '"><div class="big">' + esc(title) + '</div>' +
       (e.name ? '<div style="margin-top:4px"><b>' + esc(e.name) + '</b></div>' : '') +
       (chips.length ? '<div class="chips">' + chips.join('') + '</div>' : '') + (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div>';
@@ -216,7 +218,7 @@
 
   function pendingHtml() {
     var n = S.queue.length;
-    if (!n) return S.lastSent ? '<div class="sent">✓ All scans sent · last at ' + esc(clock(S.lastSent)) + '</div>' : '';
+    if (!n) return S.lastSent ? '<div class="sent">✓ All scans sent · last at ' + esc(clock(S.lastSent)) + (S.lastTook ? ' (took ' + S.lastTook.toFixed(1) + ' s)' : '') + '</div>' : '';
     var secs = Math.max(0, Math.ceil(((S.retryAt || 0) - Date.now()) / 1000));
     var btn = ' <button type="button" class="btn" data-sendnow="1">Send now</button>';
     if (S.sending) return '<div class="pending">⏳ Sending ' + n + ' scan(s)…</div>';
@@ -235,8 +237,35 @@
     }).join('');
   }
 
+  // ---- 🧹 clear this phone's list (e.g. after a practice run) ----
+  function clearHtml() {
+    if (!S.clearAsk) return S.recent.length || S.queue.length ? '<button type="button" class="btn" data-clear="ask">🧹 Clear this phone’s scan list</button>' : '';
+    var unsent = S.queue.length;
+    return '<div class="card"><b>Clear the list on this phone?</b><p class="muted" style="margin:6px 0">This only empties the list on this phone. ' +
+      'Scans already sent stay in the spreadsheet (the organizer removes practice scans with 🏃 Fun Run → 🧹 Clear test check-ins).</p>' +
+      (unsent ? '<div class="pending">⚠️ ' + unsent + ' scan(s) are NOT sent yet. If you delete them they will never be recorded.</div>' : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn gold" data-clear="sent">' + (unsent ? 'Clear sent ones only' : 'Yes, clear the list') + '</button>' +
+      (unsent ? '<button type="button" class="btn" data-clear="all">Also delete the ' + unsent + ' unsent</button>' : '') +
+      '<button type="button" class="btn" data-clear="cancel">Cancel</button></div></div>';
+  }
+
+  function clearList(mode) {
+    if (mode === 'ask') S.clearAsk = true;
+    else if (mode === 'cancel') S.clearAsk = false;
+    else {
+      var keep = {};
+      if (mode !== 'all') S.queue.forEach(function (q) { keep[q.id] = 1; });
+      else { S.queue = []; clearTimeout(S.retryTimer); S.lastError = ''; S.offline = false; }
+      S.recent = S.recent.filter(function (e) { return keep[e.id]; });
+      S.lastSent = 0; S.lastTook = 0; S.clearAsk = false;
+      save();
+    }
+    refresh();
+  }
+
   function refresh() {
     if (!$('#result')) return;
+    if ($('#clear')) $('#clear').innerHTML = clearHtml();
     $('#result').innerHTML = resultHtml();
     $('#pending').innerHTML = pendingHtml();
     $('#recent').innerHTML = recentHtml();
@@ -244,7 +273,9 @@
 
   // ---------- recording (with offline queue) ----------
   function parseLink(raw) {
-    var m = String(raw || '').match(/[?&]bib=(\d+)(?:&c=([0-9a-f]{10}))?/i);
+    var t = String(raw || '');
+    var m = t.match(/[?&]bib=(\d+)(?:&c=([0-9a-f]{10}))?/i) ||   // QR code: the bib link
+      t.match(/^\s*(\d{1,6})-([0-9a-f]{10})\s*$/i);             // 1D barcode on the bib: 5001-5992C4DBCE
     return m ? { bib: String(Number(m[1])), code: (m[2] || '').toUpperCase() } : null;
   }
 
@@ -270,13 +301,14 @@
     clearTimeout(S.retryTimer);
     S.sending = true;
     var batch = S.queue.slice(0, 25);
+    var started = Date.now();
     var p = $('#pending'); if (p) p.innerHTML = pendingHtml();
     api('recordBatch', { batch: { station: S.station.name, pin: S.pin,
       entries: batch.map(function (q) { return { bib: q.bib, clientTime: q.clientTime, id: q.id, qrCode: q.qrc || '' }; }) } }).then(function (res) {
       S.sending = false;
       if (res && res.authError) { S.pin = ''; S.error = res.error; save(); render(); return; }
       if (!res || !res.ok || !res.results) { fail(new Error((res && res.error) || 'The website did not answer properly'), true); return; }
-      S.offline = false; S.lastError = ''; S.fails = 0; S.lastSent = Date.now();
+      S.offline = false; S.lastError = ''; S.fails = 0; S.lastSent = Date.now(); S.lastTook = (Date.now() - started) / 1000;
       var sent = {};
       batch.forEach(function (q, k) {
         var r = res.results[k];
@@ -293,6 +325,9 @@
   function friendlyError(msg) {
     msg = String(msg || '').replace(/^(Exception|Error|ScriptError):\s*/i, '').replace(/[.\s]+$/, '');
     if (/lock timeout|busy|too long/i.test(msg)) return 'the spreadsheet was busy for a moment';
+    if (/HTTP 5\d\d|server error|internal error/i.test(msg)) return 'Google’s server had a short hiccup (this is not your internet)';
+    if (/failed to fetch|load failed|networkerror/i.test(msg)) return 'could not reach the race website – usually weak signal (it keeps retrying). If it never works, check the website link and that Deploy → Who has access is Anyone';
+    if (/timed? ?out|exceeded maximum execution/i.test(msg)) return 'the spreadsheet took too long to answer';
     if (/authoriz|permission|access denied|not allowed|log ?in|sign ?in|401|403/i.test(msg)) return 'the website is not open to everyone – the organizer must set Deploy → Who has access: Anyone';
     if (/function not found|is not defined/i.test(msg)) return 'the website needs a new deployment – the organizer must use Deploy → Manage deployments → New version';
     if (/too many times|quota|rate/i.test(msg)) return 'Google’s usage limit was reached – wait a minute';
@@ -301,10 +336,10 @@
 
   function fail(err, answered) {
     var msg = String((err && err.message) || err || '');
-    S.offline = !answered && (navigator.onLine === false || /network|failed to fetch|load failed|offline|timeout/i.test(msg));
+    S.offline = !answered && navigator.onLine === false;   // only when the phone itself has no internet
     S.lastError = S.offline ? '' : friendlyError(msg);
     S.fails = (S.fails || 0) + 1;
-    var wait = S.offline ? 3000 : Math.min(10000, 1500 * S.fails);
+    var wait = S.offline ? 3000 : Math.min(8000, 1000 * S.fails);
     S.retryAt = Date.now() + wait;
     save(); refresh();
     clearTimeout(S.retryTimer);
@@ -433,7 +468,7 @@
       STARTED: '🟢 ' + who + ' – started', FINISHED_NO_TURN: '⚠️ ' + who + ' – no turning point record',
       DUPLICATE: '⚠️ ' + e.bib + ' already checked in', DUPLICATE_FINISH: '⚠️ ' + e.bib + ' already finished',
       DUPLICATE_START: '⚠️ ' + e.bib + ' already started', WRONG_CATEGORY: '⚠️ ' + who + ' – wrong turning point',
-      NOT_REGISTERED: '❌ ' + e.bib + ' is not registered', INVALID_QR: '❌ Fake or old QR on bib ' + e.bib
+      NOT_REGISTERED: '❌ ' + e.bib + ' is not registered', INVALID_QR: '❌ Fake or old bib code on ' + e.bib
     }[e.code] || ('❌ ' + e.bib + ' not saved');
     overlay(t, good ? 'good' : 'bad', good ? 2500 : 5000);
     if (!good) beep(false);
@@ -449,6 +484,8 @@
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-pick]');
     if (t) { S.pick = t.getAttribute('data-pick'); S.error = ''; document.querySelectorAll('.pick').forEach(function (b) { b.classList.toggle('on', b === t); }); var p = $('#pin'); if (p) p.focus(); return; }
+    t = e.target.closest('[data-clear]');
+    if (t) { clearList(t.getAttribute('data-clear')); return; }
     t = e.target.closest('[data-sendnow]');
     if (t) { S.fails = 0; clearTimeout(S.retryTimer); pump(); return; }
     t = e.target.closest('[data-cam]');
@@ -490,6 +527,37 @@
 
   document.addEventListener('input', function (e) {
     if (e.target.id === 'bib') { var l = parseLink(e.target.value); if (l && l.code) { e.target.value = ''; record(l.bib, l.code); } }
+  });
+  // Wired / Bluetooth scanner: it "types" fast and ends with Enter. Caught here even when no box is selected.
+  var KB = { buf: '', last: 0, timer: null };
+  function scanHint() {
+    return S.scannerSeen ? '🔫 <b>Scanner working</b> – every scan is recorded automatically.'
+      : '🔫 Wired or Bluetooth scanner? Just scan – it also works while the camera is on.';
+  }
+  function scannerInput(text) {
+    S.scannerSeen = true;
+    var h = $('#scanhint'); if (h) h.innerHTML = scanHint();
+    var link = parseLink(text);
+    if (link) record(link.bib, link.code); else record(String(text).replace(/\D/g, ''), '');
+    if (CAM.on) overlay('🔫 Bib ' + (link ? link.bib : String(text).replace(/\D/g, '')) + ' scanned', 'good');
+  }
+  document.addEventListener('keydown', function (e) {
+    if (!S.station || !S.pin) return;
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var now = Date.now();
+    if (now - KB.last > 150) KB.buf = '';
+    KB.last = now;
+    if (e.key === 'Enter') {
+      if (KB.buf.length >= 3) { e.preventDefault(); scannerInput(KB.buf); }
+      KB.buf = ''; clearTimeout(KB.timer); return;
+    }
+    if (e.key && e.key.length === 1) {
+      KB.buf += e.key;
+      clearTimeout(KB.timer);
+      KB.timer = setTimeout(function () { if (parseLink(KB.buf)) scannerInput(KB.buf); KB.buf = ''; }, 250);
+    }
   });
   window.addEventListener('online', function () { S.fails = 0; clearTimeout(S.retryTimer); pump(); });   // back online → send at once
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { pump(); if (CAM.on) wake(); } });
