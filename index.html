@@ -261,18 +261,68 @@
   .trk-feed { display: grid; gap: 6px; margin-bottom: 14px; }
   .feed-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; font-size: 13px; padding: 7px 12px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
   .feed-row time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
-  .trk-sum { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--ink2); margin: 4px 0 8px; }
-  .trk-sum b { color: var(--ink); font-size: 18px; font-variant-numeric: tabular-nums; }
-  .trk-bar { display: flex; gap: 2px; height: 10px; margin-bottom: 8px; }
-  .trk-bar i { display: block; height: 100%; border-radius: 999px; }
-  .st-fin { background: var(--pine2); } .st-back { background: var(--gold); } .st-out { background: #d8d2c2; }
-  .trk-list { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; margin-top: 12px; }
-  .trk-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line2); }
-  .trk-row:first-child { border-top: 0; }
-  .trk-bib { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 15px; }
-  .trk-main { min-width: 0; }
-  .trk-main b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .trk-main small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  /* category boards */
+  .boards { display: grid; gap: 16px; }
+  .board { container-type: inline-size; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+  .board.c-5km { --cc: var(--c5km); --cs: var(--c5km-soft); } .board.c-8km { --cc: var(--c8km); --cs: var(--c8km-soft); } .board.c-12km { --cc: var(--c12km); --cs: var(--c12km-soft); }
+  .board { --cc: var(--pine2); --cs: #e8efe9; }
+  .bd-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 16px; color: #fff; background: var(--cc); }
+  .bd-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-right: auto; min-width: 0; }
+  .bd-cat { font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: .01em; }
+  .bd-turn { font-size: 13px; font-weight: 600; opacity: .92; }
+  .bd-clock { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; background: rgba(0,0,0,.2); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .bd-fin { font-size: 13px; white-space: nowrap; } .bd-fin b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .course { display: flex; align-items: flex-start; padding: 30px 12px 6px; }
+  .cs-node { flex: none; width: 88px; display: grid; justify-items: center; text-align: center; position: relative; z-index: 1; }
+  .cs-dot { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 4px solid var(--cc); margin-bottom: 4px; }
+  .cs-turn .cs-dot { border-color: var(--gold); } .cs-fin .cs-dot { border-color: var(--pine2); background: var(--pine2); }
+  .cs-lbl { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
+  .cs-n { font-size: 26px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .cs-node small { font-size: 11px; color: var(--muted); }
+  .cs-leg { flex: 1 1 0; min-width: 20px; height: 18px; margin: 0 -35px; position: relative; }
+  .cs-leg::before { content: ''; position: absolute; left: 0; right: 0; top: 7px; height: 4px; border-radius: 4px; background: var(--line); }
+  .cs-leg.on::before { background: var(--cc); }
+  .cs-run { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 800; color: var(--cc); background: var(--cs); padding: 2px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+  .lanes { display: grid; gap: 10px; padding: 6px 14px 14px; }
+  @container (min-width: 620px) { .lanes { grid-template-columns: repeat(var(--lanes, 3), minmax(0, 1fr)); } }
+  .lane { background: var(--bg); border-radius: 12px; border-top: 4px solid #cfc8b6; padding: 10px; min-width: 0; }
+  .lane.ln-back { border-top-color: var(--gold); } .lane.ln-fin { border-top-color: var(--pine2); }
+  .lane-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--ink2); }
+  .lane-h b { font-size: 20px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .lane-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  .rc { display: flex; align-items: center; gap: 8px; min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 6px 9px; font-size: 13px; }
+  .rc-rank { font-weight: 800; color: var(--pine2); min-width: 28px; font-variant-numeric: tabular-nums; }
+  .rc-bib { font-weight: 800; min-width: 42px; font-variant-numeric: tabular-nums; }
+  .rc-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rc-time { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rc-new { font-size: 10px; font-weight: 800; letter-spacing: .04em; background: var(--gold); color: #3d2e00; padding: 1px 6px; border-radius: 999px; }
+  .rc.fresh { border-color: var(--gold); box-shadow: inset 4px 0 0 var(--gold); }
+  .rc.moved { animation: rcIn 1.2s ease-out; }
+  @keyframes rcIn { from { background: var(--gold-soft); transform: translateY(-6px); } to { background: #fff; transform: none; } }
+  .lane-empty { margin: 2px; font-size: 13px; color: var(--muted); }
+  .rc-gap { text-align: center; color: var(--muted); font-weight: 800; line-height: .6; letter-spacing: .2em; }
+  .lane-more { margin-top: 8px; border: 0; background: transparent; color: var(--pine2); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+  .bd-dns { padding: 0 14px 12px; }
+  .bd-dns .lane-more { margin-top: 0; color: var(--ink2); }
+  .dns-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 12px; }
+  .dns-list span { background: #f1ece0; border-radius: 999px; padding: 3px 10px; }
+  .big-btn { padding: 7px 12px; font-size: 13px; }
+  /* big-screen board (?page=live) */
+  body.board-mode .top, body.board-mode .updated, body.board-mode .foot { display: none; }
+  body.board-mode .wrap { max-width: 1920px; }
+  .live-board { padding-top: 10px; }
+  .lb-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 10px; }
+  .lb-head > div:first-child { margin-right: auto; }
+  .lb-head h1 { margin: 0; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.15; display: flex; align-items: center; gap: 10px; }
+  .live-board .trk-feed { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin-bottom: 12px; }
+  .live-board .feed-row { overflow: hidden; } .live-board .feed-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-board .boards.multi { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); align-items: start; }
+  .live-board .course { padding-top: 26px; }
+  .lane-bibs { display: flex; flex-wrap: wrap; gap: 5px; }
+  .lane-bibs span { background: #fff; border: 1px solid var(--line); border-radius: 7px; padding: 2px 7px; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  @container (max-width: 619px) { .live-board .ln-fin { order: -2; } .live-board .ln-back { order: -1; } }   /* big screen: finishers first */
+  @media (min-width: 1500px) { .live-board .rc { font-size: 15px; padding: 8px 11px; } .live-board .bd-cat { font-size: 30px; } .live-board .cs-n { font-size: 30px; } }
+  @media (prefers-reduced-motion: reduce) { .rc.moved { animation: none; } }
   .pill { font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; letter-spacing: .02em; }
   .pill.s2 { background: var(--pine2); color: #fff; }
   .pill.s1 { background: var(--gold); color: #3d2e00; }
@@ -357,8 +407,6 @@
   .p-dl dd { margin: 0; overflow-wrap: anywhere; }
   .p-proof, .p-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .bib-st { font-size: 13px; font-weight: 600; padding: 0 10px 8px; color: var(--ink2); }
-  .st-dns { background: #efe9dc; }
-  .pill.sdns { background: transparent; border: 1px dashed #c9c2b0; color: var(--muted); }
 
   /* ---------- printable bib QR codes ---------- */
   .qr-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
@@ -481,12 +529,12 @@
   var state = {
     page: isPage(INITIAL_PAGE) ? INITIAL_PAGE : 'home',
     bibQuery: '', runnerCat: null, runnerQuery: '', runnerLimit: 60, resultCat: null,
-    trackCat: null, trackQuery: ''
+    trackCat: 'All', trackQuery: ''
   };
 
   // ---------------- helpers ----------------
   function $(s) { return document.querySelector(s); }
-  function isPage(p) { return p === 'marshal' || p === 'qrcodes' || PAGES.some(function (x) { return x.id === p; }); }
+  function isPage(p) { return p === 'marshal' || p === 'qrcodes' || p === 'live' || PAGES.some(function (x) { return x.id === p; }); }
   function pageInfo(id) { return PAGES.filter(function (x) { return x.id === id; })[0] || PAGES[0]; }
   function esc(s) {
     return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -910,12 +958,7 @@
   function cpsFor(cat) {
     return (DATA.race.stations || []).filter(function (s) { return stType(s) === 'checkpoint' && (!s.cats.length || s.cats.indexOf(cat) !== -1); });
   }
-  function shortStation(name) { return /^turn/i.test(name) ? 'Turn' : name; }
   function bibMap() { var m = {}; DATA.funrun.runners.forEach(function (r) { m[r.bib] = r; }); return m; }
-  function backLabel(cat) {
-    var c = cpsFor(cat);
-    return c.length === 1 && /turn/i.test(c[0].name) ? 'Past turning point' : 'Past checkpoint';
-  }
 
   function trackRows(cat) {
     var cps = cpsFor(cat), passBy = {}, finBy = {}, started = {};
@@ -941,7 +984,7 @@
 
   function feedHtml() {
     var m = bibMap();
-    var items = (DATA.race.feed || []).slice(0, 4);
+    var items = (DATA.race.feed || []).slice(0, state.page === 'live' ? 3 : (window.innerWidth < 640 ? 2 : 4));
     if (!items.length) return '';
     return '<div class="trk-feed">' + items.map(function (f) {
       var who = m[f.bib] ? esc(m[f.bib].name) : 'Runner';
@@ -952,80 +995,200 @@
     }).join('') + '</div>';
   }
 
+  // ---------------- LIVE BOARDS: one per category ----------------
+  // Each category gets its own board: Start → Turning point (half the race distance) → Finish,
+  // with the runners in each stretch. Refreshes every 15 seconds on race day.
+  var TRK = { open: {}, prev: null, moved: {} };
+
+  function catKm(cat) { var m = String(cat || '').match(/\d+(?:\.\d+)?/); return m ? Number(m[0]) : 0; }
+  function turnKm(cat) { var k = catKm(cat) / 2; return k ? (Math.round(k * 10) / 10) + ' km' : ''; }   // 5KM → 2.5 km
+  function raceClock(ms) {
+    var s = Math.max(0, Math.floor(ms / 1000));
+    return Math.floor(s / 3600) + ':' + ('0' + Math.floor(s % 3600 / 60)).slice(-2) + ':' + ('0' + s % 60).slice(-2);
+  }
+  function clockOn(gun, fin, total) { var now = Date.now(); return !!gun && now >= gun && fin < total && now - gun < 6 * 3600000; }
+
   function trackTabs() {
-    return DATA.funrun.categories.map(function (c) {
-      var fin = DATA.funrun.results.filter(function (x) { return x.cat === c; }).length;
-      return '<button class="tab' + (c === state.trackCat ? ' on' : '') + '" data-trkcat="' + esc(c) + '"><span class="dot bg-' + catKey(c) + '"></span>' +
-        esc(c) + ' <span class="muted">' + fin + '/' + fmt(DATA.funrun.counts[c] || 0) + '</span></button>';
+    var f = DATA.funrun;
+    return ['All'].concat(f.categories).map(function (c) {
+      var lbl = c === 'All' ? 'All'
+        : '<span class="dot bg-' + catKey(c) + '"></span>' + esc(c) + ' <span class="muted">' +
+          f.results.filter(function (x) { return x.cat === c; }).length + '/' + fmt(f.counts[c] || 0) + '</span>';
+      return '<button type="button" class="tab' + (c === state.trackCat ? ' on' : '') + '" data-trkcat="' + esc(c) + '">' + lbl + '</button>';
     }).join('');
   }
 
-  function trackBody() {
-    var cat = state.trackCat, t = trackRows(cat), rows = t.rows;
-    var n = [0, 0, 0, 0];
-    rows.forEach(function (x) { n[x.stage]++; });
-    var back = backLabel(cat);
-    var seg = [[3, 'st-fin', 'Finished'], [2, 'st-back', back], [1, 'st-out', t.useStart ? 'Started' : 'On the way out']];
-    if (t.useStart) seg.push([0, 'st-dns', 'Not started']);
-    var sum = '<div class="trk-sum"><span><b>' + n[3] + '</b> finished</span><span><b>' + n[2] + '</b> ' + esc(back.toLowerCase()) + '</span>' +
-      '<span><b>' + n[1] + '</b> ' + (t.useStart ? 'started, not yet at the turning point' : 'not yet at the ' + (t.cps.length ? 'turning point' : 'finish')) + '</span>' +
-      (t.useStart ? '<span><b>' + n[0] + '</b> not started</span>' : '') + '</div>' +
-      '<div class="trk-bar" role="img" aria-label="' + esc(seg.map(function (x) { return n[x[0]] + ' ' + x[2]; }).join(', ')) + '">' +
-      seg.map(function (x) { return n[x[0]] ? '<i class="' + x[1] + '" style="flex:' + n[x[0]] + '"></i>' : ''; }).join('') + '</div>' +
-      '<div class="seg-legend">' + seg.map(function (x) { return '<span><span class="dot ' + x[1] + '"></span>' + esc(x[2]) + '</span>'; }).join('') + '</div>';
+  function stageTime(x, stage) { return stage === 3 ? (x.fin.t || 0) : (stage === 2 ? x.ps[x.last.name].t : 0); }
+
+  function runnerChip(x, stage, now) {
+    var t = stageTime(x, stage), info = '', rank = '';
+    if (stage === 3) { info = x.fin.time || x.fin.clock || ''; rank = x.fin.rank ? '#' + x.fin.rank : ''; }
+    else if (stage === 2) { var p = x.ps[x.last.name]; info = p.split || p.clock || ''; }
+    var fresh = t && now - t < 120000;                                   // reached this stage in the last 2 minutes
+    var moved = TRK.moved[x.r.bib] && now - TRK.moved[x.r.bib] < 5000;  // moved since the last refresh
+    return '<li class="rc' + (fresh ? ' fresh' : '') + (moved ? ' moved' : '') + '">' +
+      (stage === 3 ? '<span class="rc-rank">' + esc(rank) + '</span>' : '') +
+      '<span class="rc-bib">' + esc(x.r.bib) + '</span><span class="rc-name">' + esc(x.r.name) + '</span>' +
+      (fresh ? '<span class="rc-new">NEW</span>' : '') + (info ? '<span class="rc-time">' + esc(info) + '</span>' : '') + '</li>';
+  }
+
+  function laneLimit(stage) {
+    if (state.page !== 'live') return window.innerWidth < 640 ? 5 : 8;
+    if (stage === 1) return 48;                                                   // big screen: bib numbers only
+    var row = window.innerWidth >= 1500 ? 46 : 41, h = window.innerHeight;       // big screen: fit everything on one TV screen
+    return Math.max(2, Math.floor(state.trackCat === 'All' ? ((h - 560) / 2 - 85) / row : (h - 470) / row));
+  }
+
+  function laneHtml(cat, stage, icon, title, list, cls, none) {
+    var key = cat + '|' + stage, lim = laneLimit(stage), now = Date.now();
+    var compact = state.page === 'live' && stage === 1;
+    var all = TRK.open[key] || !!state.trackQuery || list.length <= lim + (state.page === 'live' ? 0 : 2);
+    var shown = all ? list : list.slice(0, lim);
+    if (!all && !compact) {      // shortened list: the leaders, plus whoever arrived in the last 2 minutes
+      var fresh = list.filter(function (x) { return now - stageTime(x, stage) < 120000; }).slice(-Math.min(3, lim - 1));
+      shown = list.slice(0, lim - fresh.length).filter(function (x) { return fresh.indexOf(x) === -1; }).concat(fresh);
+    }
+    var more = shown.length < list.length ? (compact ? '+' + (list.length - shown.length) + ' more' : 'Show all ' + list.length)
+      : (TRK.open[key] && list.length > lim + 2 ? 'Show fewer' : '');
+    var items = compact
+      ? '<div class="lane-bibs">' + shown.map(function (x) { return '<span title="' + esc(x.r.name) + '">' + esc(x.r.bib) + '</span>'; }).join('') + '</div>'
+      : '<ol class="lane-list">' + shown.map(function (x, i) {
+          var gap = i > 0 && list.indexOf(x) !== list.indexOf(shown[i - 1]) + 1;   // runners skipped in between
+          return (gap ? '<li class="rc-gap" aria-hidden="true">⋯</li>' : '') + runnerChip(x, stage, now);
+        }).join('') + '</ol>';
+    return '<section class="lane ' + cls + '" aria-label="' + esc(cat + ' – ' + title + ': ' + list.length) + '">' +
+      '<h3 class="lane-h"><span>' + icon + ' ' + esc(title) + '</span><b>' + list.length + '</b></h3>' +
+      (list.length ? items : '<p class="lane-empty">' + esc(none) + '</p>') +
+      (more ? '<button type="button" class="lane-more" data-lane="' + esc(key) + '">' + more + '</button>' : '') + '</section>';
+  }
+
+  function boardHtml(cat) {
+    var t = trackRows(cat), cps = t.cps, n = [0, 0, 0, 0], lanes = [[], [], [], []], now = Date.now();
+    t.rows.forEach(function (x) { n[x.stage]++; lanes[x.stage].push(x); });
     var q = norm(state.trackQuery).trim();
-    var shown = rows.filter(function (x) { return !q || norm(x.r.name + ' ' + x.r.bib).indexOf(q) !== -1; });
-    if (!shown.length) return sum + '<div class="hint">No runner matches “' + esc(state.trackQuery) + '”.</div>';
-    var pill = ['<span class="pill sdns">Not started</span>', '<span class="pill s0">On course</span>',
-      '<span class="pill s1">↩ Heading back</span>', '<span class="pill s2">🏁 Finished</span>'];
-    return sum + '<div class="trk-list">' + shown.map(function (x) {
-      var bits = t.cps.filter(function (c) { return x.ps[c.name]; }).map(function (c) {
-        var p = x.ps[c.name];
-        return esc(shortStation(c.name)) + ' ' + esc(p.split || p.clock);
-      });
-      if (x.fin) bits.push('Finish ' + esc(x.fin.time || x.fin.clock) + (x.fin.rank ? ' (#' + esc(x.fin.rank) + ')' : ''));
-      var none = x.stage === 0 ? 'Not checked in at the start' : (x.started ? 'Started' : 'Not checked in yet');
-      return '<div class="trk-row"><span class="trk-bib">' + esc(x.r.bib) + '</span><div class="trk-main"><b>' + esc(x.r.name) + '</b>' +
-        '<small>' + (bits.length ? bits.join(' · ') : none) + '</small></div>' + pill[x.stage] + '</div>';
-    }).join('') + '</div>';
+    if (q) {
+      lanes = lanes.map(function (l) { return l.filter(function (x) { return norm(x.r.name + ' ' + x.r.bib).indexOf(q) !== -1; }); });
+      if (!lanes[0].length && !lanes[1].length && !lanes[2].length && !lanes[3].length) return '';
+    }
+    var gun = DATA.race.gun && DATA.race.gun[cat], total = t.rows.length, k = catKey(cat), tk = turnKm(cat);
+    var begun = t.useStart || n[2] + n[3] > 0 || !!(gun && now >= gun);
+    var isTurn = cps.length === 1 && /turn/i.test(cps[0].name), hasCp = cps.length > 0;
+    var cpName = isTurn ? 'Turning point' : (cps.length === 1 ? cps[0].name : 'Checkpoint');
+    var started = t.useStart ? n[1] + n[2] + n[3] : (begun ? total : 0);
+
+    var head = '<header class="bd-head bg-' + k + '"><div class="bd-title"><b class="bd-cat">' + esc(cat) + '</b>' +
+      (hasCp ? '<span class="bd-turn">' + esc(cpName) + (isTurn && tk ? ' at ' + tk : '') + '</span>' : '') + '</div>' +
+      (clockOn(gun, n[3], total) ? '<span class="bd-clock" data-gun="' + gun + '" data-cat="' + esc(cat) + '" title="Race clock">⏱ ' + raceClock(now - gun) + '</span>' : '') +
+      '<span class="bd-fin"><b>' + n[3] + '</b> / ' + total + ' finished</span></header>';
+
+    var node = function (cls, label, count, what) {
+      return '<div class="cs-node ' + cls + '"><span class="cs-dot"></span><span class="cs-lbl">' + label + '</span>' +
+        '<b class="cs-n">' + count + '</b><small>' + what + '</small></div>';
+    };
+    var leg = function (count, what) {
+      return '<div class="cs-leg' + (count ? ' on' : '') + '">' + (count ? '<span class="cs-run" title="' + count + ' ' + what + '">🏃 ' + count + '</span>' : '') + '</div>';
+    };
+    var course = '<div class="course" role="img" aria-label="' + esc(cat + ': ' + started + ' started, ' + (hasCp ? (n[2] + n[3]) + ' reached the ' + cpName.toLowerCase() + ', ' : '') + n[3] + ' finished') + '">' +
+      node('cs-start', 'Start', started, 'started') +
+      (hasCp ? leg(n[1], 'heading out') + node('cs-turn', isTurn ? 'Turn' + (tk ? ' · ' + tk : '') : esc(cpName), n[2] + n[3], 'reached') + leg(n[2], 'heading back')
+        : leg(n[1], 'on course')) +
+      node('cs-fin', 'Finish', n[3], 'finished') + '</div>';
+
+    var outTitle = !begun ? 'Waiting for the start' : (hasCp ? 'On course · heading to the ' + (isTurn ? 'turn' : 'checkpoint') : 'On course');
+    var body = laneHtml(cat, 1, '🏃', outTitle, lanes[1], 'ln-out', begun ? 'Nobody out on the first stretch.' : 'No runners yet.') +
+      (hasCp ? laneHtml(cat, 2, '↩️', (isTurn ? 'Reached the turn' + (tk ? ' (' + tk + ')' : '') : 'Passed ' + cpName) + ' · heading back', lanes[2], 'ln-back', 'Nobody has reached the ' + (isTurn ? 'turning point' : 'checkpoint') + ' yet.') : '') +
+      laneHtml(cat, 3, '🏁', 'Finished', lanes[3], 'ln-fin', 'No finishers yet.');
+
+    var dns = '';
+    if (t.useStart && lanes[0].length) {
+      var dk = cat + '|0', open = TRK.open[dk] || !!q;
+      dns = '<div class="bd-dns"><button type="button" class="lane-more" data-lane="' + esc(dk) + '" aria-expanded="' + open + '">⏳ Not started yet: <b>' + lanes[0].length + '</b> · ' + (open ? 'hide' : 'show') + '</button>' +
+        (open ? '<div class="dns-list">' + lanes[0].map(function (x) { return '<span><b>' + esc(x.r.bib) + '</b> ' + esc(x.r.name) + '</span>'; }).join('') + '</div>' : '') + '</div>';
+    }
+    return '<article class="board c-' + k + '">' + head + course +
+      '<div class="lanes" style="--lanes:' + (hasCp ? 3 : 2) + '">' + body + '</div>' + dns + '</article>';
+  }
+
+  function trackBody() {
+    var cats = DATA.funrun.categories;
+    if (state.trackCat !== 'All' && cats.indexOf(state.trackCat) === -1) state.trackCat = 'All';
+    var list = state.trackCat === 'All' ? cats : [state.trackCat];
+    var boards = list.map(boardHtml).filter(Boolean);
+    if (!boards.length) return '<div class="hint">No runner matches “' + esc(state.trackQuery) + '”.</div>';
+    return '<div class="boards' + (boards.length > 1 ? ' multi' : '') + '">' + boards.join('') + '</div>';
+  }
+
+  function raceBadge() { return DATA.race && DATA.race.live ? '<span class="badge live">Live</span>' : ''; }
+
+  function trackerTools() {
+    return '<div class="toolbar"><div class="tabs" id="trk-tabs">' + trackTabs() + '</div>' +
+      '<input class="search" id="trackq" type="search" autocomplete="off" placeholder="Find a runner by name or bib" aria-label="Find a runner" value="' + esc(state.trackQuery) + '"></div>';
   }
 
   function trackerSection() {
     var r = DATA.race;
     if (!r || !r.stations || !r.stations.length) return '';
-    var cats = DATA.funrun.categories;
-    if (cats.indexOf(state.trackCat) === -1) state.trackCat = cats[0];
-    var head = '<h2>📡 Live race tracker' + (r.live ? ' <span class="badge live">Live</span>' : '') +
+    var head = '<h2>📡 Live race tracker <span id="race-badge">' + raceBadge() + '</span>' +
       '<small id="race-upd">' + (raceActive() ? raceUpdated() : '') + '</small></h2>';
-    if (!r.passes.length && !(r.starts || []).length && !DATA.funrun.results.length) {
-      return '<section class="sec">' + head + empty('📡', 'Live tracking starts on race day. Marshals at the turning points and the finish line confirm each runner’s bib, and this list updates about every 15 seconds.') + '</section>';
+    var bigBtn = '<a href="#" class="btn ghost big-btn" data-page="live">📺 Big-screen board</a>';
+    if (!r.passes.length && !(r.starts || []).length && !DATA.funrun.results.length && !raceActive()) {
+      return '<section class="sec">' + head + empty('📡', 'Live tracking starts on race day: one board per category shows who has started, who reached the turning point (' +
+        esc(DATA.funrun.categories.map(function (c) { return turnKm(c) + ' for ' + c; }).join(', ')) + ') and who finished, updated about every 15 seconds.') +
+        '<div class="hint">' + bigBtn + '</div></section>';
     }
-    return '<section class="sec">' + head + '<div id="trk-feed">' + feedHtml() + '</div>' +
-      '<div class="toolbar"><div class="tabs" id="trk-tabs">' + trackTabs() + '</div>' +
-      '<input class="search" id="trackq" type="search" autocomplete="off" placeholder="Find a runner by name or bib" value="' + esc(state.trackQuery) + '"></div>' +
+    return '<section class="sec">' + head + '<div id="trk-feed">' + feedHtml() + '</div>' + trackerTools() +
+      '<div id="trk-body">' + trackBody() + '</div><div class="hint">' + bigBtn + ' Show the boards on a TV or projector at the venue.</div></section>';
+  }
+
+  // Big-screen board (?page=live): only the category boards, for a TV or projector.
+  function viewLive() {
+    var r = DATA.race;
+    if (!r || !r.stations || !r.stations.length) {
+      return '<section class="sec">' + empty('📡', 'The live race board appears once the race stations are set up.') + '</section>';
+    }
+    return '<section class="sec live-board"><div class="lb-head"><div><div class="eyebrow">' + esc(DATA.info.eventName) + '</div>' +
+      '<h1>📡 Live race board <span id="race-badge">' + raceBadge() + '</span></h1></div>' +
+      '<div class="tabs" id="trk-tabs">' + trackTabs() + '</div>' +
+      '<span class="muted" id="race-upd">' + raceUpdated() + '</span>' +
+      '<a href="#" class="btn ghost" data-page="funrun">← Fun Run page</a></div>' +
+      '<div id="trk-feed">' + feedHtml() + '</div>' +
       '<div id="trk-body">' + trackBody() + '</div></section>';
+  }
+
+  // Remembers each runner's stage, so runners who just moved can be highlighted after a refresh.
+  function trkNoteMoves() {
+    if (!DATA.race || !DATA.funrun) return;
+    var cur = {}, now = Date.now();
+    DATA.funrun.categories.forEach(function (c) { trackRows(c).rows.forEach(function (x) { cur[x.r.bib] = x.stage; }); });
+    if (TRK.prev) Object.keys(cur).forEach(function (b) { if (TRK.prev[b] !== undefined && cur[b] > TRK.prev[b]) TRK.moved[b] = now; });
+    TRK.prev = cur;
   }
 
   function refreshRace() {
     if (!hasGas() || document.visibilityState === 'hidden') return;
-    if ((state.page !== 'funrun' && state.page !== 'home') || !raceActive()) return;
+    if (state.page !== 'live' && ((state.page !== 'funrun' && state.page !== 'home') || !raceActive())) return;
     google.script.run.withSuccessHandler(function (txt) {
       var d;
       try { d = JSON.parse(txt); } catch (err) { return; }
+      if (!TRK.prev) trkNoteMoves();
       DATA.race = d.race;
       DATA.funrun.results = d.results;
+      trkNoteMoves();
       updateRaceViews();
     }).withFailureHandler(function () {}).getRaceData();
   }
 
   function updateRaceViews() {
     var y = window.scrollY;
-    if (state.page === 'funrun') {
-      if ($('#trk-body')) {
-        $('#trk-feed').innerHTML = feedHtml();
-        $('#trk-tabs').innerHTML = trackTabs();
-        $('#trk-body').innerHTML = trackBody();
-      } else if ($('#tracker-wrap')) {
+    if (state.page === 'live' && !$('#trk-body')) render();
+    if ((state.page === 'funrun' || state.page === 'live') && $('#trk-body')) {
+      $('#trk-feed').innerHTML = feedHtml();
+      $('#trk-tabs').innerHTML = trackTabs();
+      $('#trk-body').innerHTML = trackBody();
+      if ($('#race-badge')) $('#race-badge').innerHTML = raceBadge();
+      if (state.page === 'funrun' && $('#results-sec')) $('#results-sec').innerHTML = resultsSection();
+    } else if (state.page === 'funrun') {
+      if ($('#tracker-wrap')) {
         $('#tracker-wrap').innerHTML = trackerSection();
       }
       if ($('#results-sec')) $('#results-sec').innerHTML = resultsSection();
@@ -1322,7 +1485,7 @@
 
   var wakeLock = null;
   function keepAwake() {
-    if (state.page !== 'marshal' || !navigator.wakeLock || wakeLock) return;
+    if ((state.page !== 'marshal' && state.page !== 'live') || !navigator.wakeLock || wakeLock) return;   // keep the screen on
     navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; l.addEventListener('release', function () { wakeLock = null; }); }).catch(function () {});
   }
 
@@ -1964,12 +2127,13 @@
     volleyball: function () { return viewSport('volleyball'); },
     pickleball: function () { return viewSport('pickleball'); },
     mlbb: function () { return viewSport('mlbb'); },
-    bingo: viewBingo, trees: viewTrees, mentors: viewMentors, marshal: viewMarshal, qrcodes: viewQr
+    bingo: viewBingo, trees: viewTrees, mentors: viewMentors, marshal: viewMarshal, qrcodes: viewQr, live: viewLive
   };
 
   function render() {
     if (state.page !== 'marshal' && CAM.on) camStop();
     document.body.classList.toggle('marshal-mode', state.page === 'marshal');
+    document.body.classList.toggle('board-mode', state.page === 'live');
     renderNav();
     $('#app').innerHTML = (VIEWS[state.page] || viewHome)();
     renderFooter();
@@ -1993,6 +2157,7 @@
       }
     }
     if (state.page === 'qrcodes') drawQrs();
+    if (state.page === 'live') { keepAwake(); refreshRace(); }
     if (state.page === 'funrun' && state.scrollToBib && $('#bibq')) { state.scrollToBib = false; $('#bibq').scrollIntoView({ block: 'center' }); }
   }
 
@@ -2017,7 +2182,10 @@
     var up = $('#updated');
     if (up) up.textContent = 'Updated ' + rel(DATA.generatedMs);
     var ru = $('#race-upd');
-    if (ru && raceActive()) ru.textContent = raceUpdated();
+    if (ru && (raceActive() || state.page === 'live')) ru.textContent = raceUpdated();
+    document.querySelectorAll('.bd-clock[data-gun]').forEach(function (el) {
+      el.textContent = '⏱ ' + raceClock(Date.now() - Number(el.getAttribute('data-gun')));
+    });
     var mc = $('#m-clock');
     if (mc) mc.textContent = mClock(Date.now());
     if (state.page === 'marshal' && M.queue.length && !M.sending && (M.offline || M.lastError)) mRefreshPending();
@@ -2039,6 +2207,8 @@
     if (t) { state.resultCat = t.getAttribute('data-rescat'); $('#results-sec').innerHTML = resultsSection(); return; }
     t = e.target.closest('[data-more]');
     if (t) { state.runnerLimit += 60; $('#runlist').innerHTML = runnerList(); return; }
+    t = e.target.closest('[data-lane]');
+    if (t) { var lk = t.getAttribute('data-lane'); TRK.open[lk] = !TRK.open[lk]; $('#trk-body').innerHTML = trackBody(); return; }
     t = e.target.closest('[data-trkcat]');
     if (t) { state.trackCat = t.getAttribute('data-trkcat'); $('#trk-tabs').innerHTML = trackTabs(); $('#trk-body').innerHTML = trackBody(); return; }
     t = e.target.closest('[data-pick]');
