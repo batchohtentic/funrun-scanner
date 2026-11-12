@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Fun Run Camera Scanner</title>
+<!--
+  FUN RUN CAMERA SCANNER (stand-alone page)
+  For marshal phones that block the camera inside the Google website.
+  Host this ONE file anywhere outside Google, e.g. GitHub Pages (free):
+    1. github.com → New repository "funrun-scanner" (Public) → Add file → Upload files → this index.html → Commit.
+    2. Repository Settings → Pages → Branch: main, folder: / (root) → Save. Wait ~1 minute.
+    3. Copy the address shown (https://<name>.github.io/funrun-scanner/) into the
+       "Camera Scanner Page" setting in the "Site - Info" tab of the spreadsheet.
+  The website then links here automatically (the link carries your website address).
+  Scans are sent to your Apps Script website and saved in the same tabs.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pine: #0f3d2e; --pine2: #17563f; --gold: #f2b705; --bg: #f7f4ec; --card: #fff; --line: #e6e0d2; --line2: #f0ebdf;
+    --ink: #1c2621; --ink2: #46544d; --muted: #6b7a72; --c5km: #2e7d32; --c8km: #2f5fb3; --c12km: #c62828;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.5; }
+  .top { background: var(--pine); color: #fff; padding: 12px 16px; position: sticky; top: 0; z-index: 5; }
+  .top b { display: block; font-size: 16px; }
+  .top small { opacity: .75; font-size: 12px; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  h1 { margin: 0; font-size: 24px; }
+  .muted { color: var(--muted); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  label { font-weight: 700; font-size: 14px; }
+  input { width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); outline: none; }
+  input:focus { border-color: var(--pine2); box-shadow: 0 0 0 3px rgba(23,86,63,.12); }
+  .form { display: grid; gap: 10px; }
+  .go { font: inherit; font-size: 18px; font-weight: 800; padding: 15px; border-radius: 16px; border: 0; background: var(--pine2); color: #fff; cursor: pointer; }
+  .btn { font: inherit; font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; color: var(--pine); cursor: pointer; }
+  .btn.gold { background: var(--gold); border-color: var(--gold); color: #2a2100; }
+  .err { color: #a61b1b; font-weight: 700; font-size: 14px; min-height: 1em; }
+  .pick { font: inherit; text-align: left; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--line); background: #fff; cursor: pointer; font-weight: 700; font-size: 16px; color: var(--ink); width: 100%; }
+  .pick small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; }
+  .pick.on { border-color: var(--pine2); background: #eef8f1; }
+  .station { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--pine); color: #fff; }
+  .station small { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; opacity: .75; font-weight: 700; }
+  .station b { font-size: 20px; }
+  .station .btn { background: rgba(255,255,255,.14); color: #fff; border-color: transparent; }
+  .cam { position: relative; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; }
+  .cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .frame { position: absolute; inset: 16% 22%; border: 3px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 999px rgba(0,0,0,.28); pointer-events: none; }
+  .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px; text-align: center; color: #fff; font-weight: 800; font-size: 16px; background: rgba(0,0,0,.5); }
+  .overlay.good { background: rgba(31,122,67,.94); }
+  .overlay.bad { background: rgba(166,27,27,.94); }
+  .bib { width: 100%; font-size: 34px; font-weight: 800; text-align: center; letter-spacing: .08em; }
+  .bib::placeholder { color: #d5cfbf; }
+  .result { border-radius: 16px; padding: 14px; border: 2px solid var(--line); background: #fff; }
+  .result .big { font-size: 20px; font-weight: 800; line-height: 1.25; }
+  .result .note { font-size: 14px; color: var(--ink2); margin-top: 4px; }
+  .result.good { border-color: #8cc9a3; background: #eef8f1; }
+  .result.warn { border-color: #f0cf6b; background: #fff8e1; }
+  .result.bad { border-color: #e9a3a3; background: #fdecec; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chips span { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); }
+  .chips span:not(.c) { background: #fff; }
+  .chips .c { color: #fff; border-color: transparent; }
+  .c5km { background: var(--c5km); } .c8km { background: var(--c8km); } .c12km { background: var(--c12km); }
+  .pending { font-size: 14px; font-weight: 600; padding: 10px 12px; border-radius: 12px; background: #fff3d6; color: #5a4200; }
+  .pending .btn { padding: 5px 10px; font-size: 13px; margin-left: 4px; }
+  .sent { font-size: 13px; font-weight: 700; color: #1d5a35; text-align: center; }
+  .recent { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line2); font-size: 14px; }
+  .row:first-child { border-top: 0; }
+  .row time { font-size: 12px; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row.undone .who { text-decoration: line-through; color: var(--muted); }
+  .clock { text-align: center; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .foot { text-align: center; font-size: 12px; color: var(--muted); }
+  .foot button { font: inherit; background: none; border: 0; color: var(--pine2); text-decoration: underline; cursor: pointer; }
+</style>
+</head>
+<body>
+<header class="top"><b id="ev">Fun Run</b><small>Camera scanner for marshals</small></header>
+<main class="wrap" id="app"></main>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'funrun-camera-scanner';
+  var S = { api: '', event: '', stations: null, station: null, pin: '', staff: '', queue: [], recent: [], sending: false, offline: false, error: '', pick: '' };
+  var CAM = { on: false, stream: null, video: null, timer: null, last: {}, detector: null, audio: null, help: '' };
+
+  function $(s) { return document.querySelector(s); }
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function load() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY) || '{}');
+      S.api = d.api || ''; S.station = d.station || null; S.pin = d.pin || ''; S.staff = d.staff || '';
+      S.queue = d.queue || []; S.recent = d.recent || []; S.event = d.event || '';
+    } catch (err) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ api: S.api, station: S.station, pin: S.pin, staff: S.staff, event: S.event,
+        queue: S.queue, recent: S.recent.slice(0, 40) }));
+    } catch (err) {}
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function clock(ms) { return new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' }); }
+  function validApi(u) { return /^https:\/\/script\.google\.com\/.+\/exec$/.test(u || ''); }
+
+  // Talks to the Apps Script website. Plain-text POST = no CORS pre-check.
+  function api(action, payload) {
+    var body = { action: action };
+    Object.keys(payload || {}).forEach(function (k) { body[k] = payload[k]; });
+    return fetch(S.api, { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  // ---------- screens ----------
+  function render() {
+    $('#ev').textContent = S.event || 'Fun Run';
+    if (!validApi(S.api)) return viewSetup();
+    if (!S.station || !S.pin) return viewLogin();
+    return viewScan();
+  }
+
+  function viewSetup() {
+    camStop();
+    $('#app').innerHTML = '<h1>Camera scanner</h1>' +
+      '<p class="muted">Open this page from the link on the event website, or paste the website link (it ends in /exec).</p>' +
+      '<form id="f-api" class="form card"><label for="api">Website link</label>' +
+      '<input id="api" type="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec">' +
+      '<button class="go" type="submit">Continue</button><div class="err">' + esc(S.error) + '</div></form>';
+  }
+
+  function viewLogin() {
+    camStop();
+    if (!S.stations) {
+      $('#app').innerHTML = '<h1>Marshal sign-in</h1><div class="card muted">Loading stations…</div><div class="err">' + esc(S.error) + '</div>';
+      api('stations').then(function (r) {
+        S.stations = (r && r.stations) || []; S.event = (r && r.event) || S.event; S.error = ''; save(); render();
+      }).catch(function () { S.error = 'No connection to the race website. Check the internet and reload.'; S.stations = null; $('.err').textContent = S.error; });
+      return;
+    }
+    var list = S.stations.length ? S.stations.map(function (s) {
+      var sub = s.type === 'finish' ? 'Finish line' : s.type === 'start' ? 'Start line' : ((s.cats && s.cats.length ? s.cats.join(', ') + ' runners' : 'All categories') + ' · turning point');
+      return '<button type="button" class="pick' + (s.name === S.pick ? ' on' : '') + '" data-pick="' + esc(s.name) + '">' + esc(s.name) + '<small>' + esc(sub) + '</small></button>';
+    }).join('') : '<div class="card muted">No stations are set up yet. Ask the race organizer.</div>';
+    $('#app').innerHTML = '<h1>Marshal sign-in</h1><p class="muted" style="margin:0">Pick your station and enter the PIN the organizer gave you.</p>' +
+      '<div class="form">' + list + '</div>' +
+      '<form id="f-login" class="form card"><label for="staff">Your name <span class="muted">(optional)</span></label>' +
+      '<input id="staff" type="text" maxlength="40" autocomplete="off" value="' + esc(S.staff) + '">' +
+      '<label for="pin">Station PIN</label><input id="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" style="font-size:26px;letter-spacing:.3em;text-align:center">' +
+      '<button class="go" type="submit">Start scanning</button><div class="err">' + esc(S.error) + '</div></form>' +
+      (S.queue.length ? '<div class="pending">' + S.queue.length + ' scan(s) saved on this phone will be sent after you sign in.</div>' : '') +
+      '<div class="foot"><button type="button" data-reset-api="1">Change website link</button></div>';
+  }
+
+  function viewScan() {
+    var st = S.station;
+    $('#app').innerHTML =
+      '<div class="station"><div><small>Your station' + (S.staff ? ' · ' + esc(S.staff) : '') + '</small><b>' + esc(st.name) + '</b></div>' +
+      '<button type="button" class="btn" data-logout="1">Change</button></div>' +
+      '<div class="clock" id="clock">' + esc(clock(Date.now())) + '</div>' +
+      '<div id="camwrap" class="form">' + camHtml() + '</div>' +
+      '<div id="result" aria-live="polite">' + resultHtml() + '</div>' +
+      '<div id="pending">' + pendingHtml() + '</div>' +
+      '<form id="f-bib" class="form card" autocomplete="off"><label for="bib">Or type the bib number</label>' +
+      '<input id="bib" class="bib" type="text" inputmode="numeric" maxlength="300" placeholder="0000">' +
+      '<button class="go" type="submit">' + (st.type === 'finish' ? 'Confirm finish' : st.type === 'start' ? 'Check in at the start' : 'Confirm check-in') + '</button></form>' +
+      '<b>Recent scans on this phone</b><div class="recent" id="recent">' + recentHtml() + '</div>';
+    if (CAM.on) attachVideo();
+  }
+
+  // ---------- results ----------
+  var LABEL = {
+    PENDING: ['', '⏳ Bib {b} – sending…'], OK: ['good', '✅ Bib {b} checked in'], FINISHED: ['good', '🏁 Bib {b} finished'],
+    STARTED: ['good', '🟢 Bib {b} checked in at the start'], FINISHED_NO_TURN: ['warn', '⚠️ Bib {b} finished – no turning point record'],
+    DUPLICATE: ['warn', '⚠️ Bib {b} was already checked in here'], DUPLICATE_FINISH: ['warn', '⚠️ Bib {b} already finished'],
+    DUPLICATE_START: ['warn', '⚠️ Bib {b} already checked in at the start'], WRONG_CATEGORY: ['bad', '⚠️ Wrong turning point for bib {b}'],
+    NOT_REGISTERED: ['bad', '❌ Bib {b} is not registered'], INVALID_QR: ['bad', '❌ Fake or old QR on bib {b} – NOT counted'],
+    UNDONE: ['', '↩️ Bib {b} – undone'], ERROR: ['bad', '❌ Bib {b} not saved']
+  };
+
+  function resultHtml() {
+    var e = S.recent[0];
+    if (!e) return '<div class="result"><div class="note">Start the camera and point it at the QR code on each runner’s bib. Every scan is recorded automatically.</div></div>';
+    var l = LABEL[e.code] || LABEL.ERROR;
+    var warn = e.warnings && e.warnings.length;
+    var title = l[1].replace('{b}', e.bib) + (e.code === 'FINISHED' && e.rank ? ' · #' + e.rank + ' in ' + (e.cat || '') : '');
+    var chips = [];
+    if (e.cat) chips.push('<span class="c c' + String(e.cat).toLowerCase() + '">' + esc(e.cat) + '</span>');
+    if (e.gender) chips.push('<span>' + esc(e.gender) + '</span>');
+    if (e.bracket) chips.push('<span>Age ' + esc(e.bracket) + '</span>');
+    if (e.org) chips.push('<span>🏃 ' + esc(e.org) + '</span>');
+    var note = e.code === 'PENDING' && S.offline ? 'No signal right now – saved on this phone and sent automatically.' :
+      e.code === 'ERROR' ? (e.error || '') :
+      e.code === 'WRONG_CATEGORY' ? 'This runner is in ' + (e.cat || 'another category') + '. Point them to the right turning point.' :
+      e.code === 'INVALID_QR' ? 'Check the runner. If the bib number is right, type it by hand and tell the race director.' :
+      warn ? '⚠️ ' + e.warnings.join(' · ') : (e.clock ? (e.qr === 'valid' ? '🔒 QR verified · ' : '') + 'Recorded at ' + e.clock : '');
+    return '<div class="result ' + (warn && l[0] === 'good' ? 'warn' : l[0]) + '"><div class="big">' + esc(title) + '</div>' +
+      (e.name ? '<div style="margin-top:4px"><b>' + esc(e.name) + '</b></div>' : '') +
+      (chips.length ? '<div class="chips">' + chips.join('') + '</div>' : '') + (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div>';
+  }
+
+  function pendingHtml() {
+    var n = S.queue.length;
+    if (!n) return S.lastSent ? '<div class="sent">✓ All scans sent · last at ' + esc(clock(S.lastSent)) + '</div>' : '';
+    var secs = Math.max(0, Math.ceil(((S.retryAt || 0) - Date.now()) / 1000));
+    var btn = ' <button type="button" class="btn" data-sendnow="1">Send now</button>';
+    if (S.sending) return '<div class="pending">⏳ Sending ' + n + ' scan(s)…</div>';
+    if (S.offline) return '<div class="pending">📶 <b>No internet on this phone.</b> ' + n + ' scan(s) are saved here and send by themselves within seconds once mobile data or Wi-Fi is back.' + btn + '</div>';
+    if (S.lastError) return '<div class="pending">⚠️ <b>The race website didn’t take ' + n + ' scan(s) yet:</b> ' + esc(S.lastError) + '. Retrying' + (secs ? ' in ' + secs + ' s' : '…') + btn + '</div>';
+    return '<div class="pending">⏳ ' + n + ' scan(s) waiting to send…' + btn + '</div>';
+  }
+
+  function recentHtml() {
+    if (!S.recent.length) return '<div class="row"><span></span><span class="muted">Nothing yet.</span><span></span></div>';
+    return S.recent.slice(0, 20).map(function (e) {
+      var done = ['OK', 'FINISHED', 'FINISHED_NO_TURN', 'STARTED', 'DUPLICATE', 'DUPLICATE_FINISH', 'DUPLICATE_START', 'WRONG_CATEGORY', 'NOT_REGISTERED'].indexOf(e.code) !== -1;
+      return '<div class="row' + (e.code === 'UNDONE' ? ' undone' : '') + '"><time>' + esc(clock(e.clientTime)) + '</time>' +
+        '<span class="who"><b>' + esc(e.bib) + '</b> ' + esc(e.name || '') + ' <span class="muted">' + esc((LABEL[e.code] || LABEL.ERROR)[1].split(' ')[0]) + '</span></span>' +
+        (done ? '<button type="button" class="btn" data-undo="' + esc(e.id) + '">Undo</button>' : '<span></span>') + '</div>';
+    }).join('');
+  }
+
+  function refresh() {
+    if (!$('#result')) return;
+    $('#result').innerHTML = resultHtml();
+    $('#pending').innerHTML = pendingHtml();
+    $('#recent').innerHTML = recentHtml();
+  }
+
+  // ---------- recording (with offline queue) ----------
+  function parseLink(raw) {
+    var m = String(raw || '').match(/[?&]bib=(\d+)(?:&c=([0-9a-f]{10}))?/i);
+    return m ? { bib: String(Number(m[1])), code: (m[2] || '').toUpperCase() } : null;
+  }
+
+  function record(bib, qrCode) {
+    bib = bib ? String(Number(bib)) : '';
+    if (!bib || bib === '0' || bib === 'NaN') return;
+    var e = { id: uid(), bib: bib, clientTime: Date.now(), code: 'PENDING', qrc: qrCode || '' };
+    S.queue.push({ id: e.id, bib: bib, clientTime: e.clientTime, qrc: e.qrc });
+    S.recent.unshift(e);
+    save(); refresh(); pump();
+  }
+
+  function setRecent(id, res) {
+    S.recent.forEach(function (e) {
+      if (e.id !== id) return;
+      ['code', 'name', 'cat', 'clock', 'rank', 'warnings', 'qr', 'gender', 'bracket', 'org', 'error'].forEach(function (k) { if (res[k] !== undefined && res[k] !== '') e[k] = res[k]; });
+    });
+  }
+
+  // Sends every waiting scan in one request; retries by itself (instantly when signal returns).
+  function pump() {
+    if (S.sending || !S.queue.length || !S.station || !S.pin) return;
+    clearTimeout(S.retryTimer);
+    S.sending = true;
+    var batch = S.queue.slice(0, 25);
+    var p = $('#pending'); if (p) p.innerHTML = pendingHtml();
+    api('recordBatch', { batch: { station: S.station.name, pin: S.pin,
+      entries: batch.map(function (q) { return { bib: q.bib, clientTime: q.clientTime, id: q.id, qrCode: q.qrc || '' }; }) } }).then(function (res) {
+      S.sending = false;
+      if (res && res.authError) { S.pin = ''; S.error = res.error; save(); render(); return; }
+      if (!res || !res.ok || !res.results) { fail(new Error((res && res.error) || 'The website did not answer properly'), true); return; }
+      S.offline = false; S.lastError = ''; S.fails = 0; S.lastSent = Date.now();
+      var sent = {};
+      batch.forEach(function (q, k) {
+        var r = res.results[k];
+        sent[q.id] = 1;
+        setRecent(q.id, r && r.ok ? r : { code: 'ERROR', error: (r && r.error) || 'Not saved. Try again.' });
+      });
+      S.queue = S.queue.filter(function (q) { return !sent[q.id]; });
+      camResult(S.recent.filter(function (x) { return x.id === batch[batch.length - 1].id; })[0]);
+      save(); refresh(); pump();
+    }).catch(function (err) { S.sending = false; fail(err, false); });
+  }
+
+  // Plain-language reason + fix for the errors marshals can actually meet
+  function friendlyError(msg) {
+    msg = String(msg || '').replace(/^(Exception|Error|ScriptError):\s*/i, '').replace(/[.\s]+$/, '');
+    if (/lock timeout|busy|too long/i.test(msg)) return 'the spreadsheet was busy for a moment';
+    if (/authoriz|permission|access denied|not allowed|log ?in|sign ?in|401|403/i.test(msg)) return 'the website is not open to everyone – the organizer must set Deploy → Who has access: Anyone';
+    if (/function not found|is not defined/i.test(msg)) return 'the website needs a new deployment – the organizer must use Deploy → Manage deployments → New version';
+    if (/too many times|quota|rate/i.test(msg)) return 'Google’s usage limit was reached – wait a minute';
+    return (msg || 'unknown error').slice(0, 140);
+  }
+
+  function fail(err, answered) {
+    var msg = String((err && err.message) || err || '');
+    S.offline = !answered && (navigator.onLine === false || /network|failed to fetch|load failed|offline|timeout/i.test(msg));
+    S.lastError = S.offline ? '' : friendlyError(msg);
+    S.fails = (S.fails || 0) + 1;
+    var wait = S.offline ? 3000 : Math.min(10000, 1500 * S.fails);
+    S.retryAt = Date.now() + wait;
+    save(); refresh();
+    clearTimeout(S.retryTimer);
+    S.retryTimer = setTimeout(pump, wait);
+  }
+
+  function undo(id) {
+    api('undo', { undo: { station: S.station.name, pin: S.pin, id: id } }).then(function (res) {
+      if (res && res.ok) setRecent(id, { code: 'UNDONE' });
+      save(); refresh();
+    }).catch(function () { alertNote('No signal – try Undo again in a moment.'); });
+  }
+
+  function alertNote(t) { var r = $('#result'); if (r) r.innerHTML = '<div class="result bad"><div class="note">' + esc(t) + '</div></div>'; }
+
+  // ---------- camera ----------
+  function camHtml() {
+    return '<button type="button" class="btn ' + (CAM.on ? '' : 'gold') + '" data-cam="' + (CAM.on ? 'stop' : 'start') + '" style="font-size:16px;padding:12px">' +
+      (CAM.on ? '⏹ Stop camera' : '📷 Start camera') + '</button>' +
+      (CAM.on ? '<div class="cam"><video id="video" playsinline muted autoplay></video><div class="frame"></div><div id="overlay" class="overlay">Point the camera at the QR code on the bib</div></div>' : '') +
+      (CAM.help ? '<div class="result warn"><div class="note">' + CAM.help + '</div></div>' : '');
+  }
+
+  function attachVideo() {
+    var v = $('#video');
+    if (v && CAM.stream) { v.srcObject = CAM.stream; var p = v.play(); if (p && p.catch) p.catch(function () {}); CAM.video = v; }
+  }
+
+  function camStart() {
+    CAM.help = '';
+    try { CAM.audio = CAM.audio || new (window.AudioContext || window.webkitAudioContext)(); } catch (err) {}
+    if (CAM.detector === null) {
+      CAM.detector = false;
+      try {
+        if (window.BarcodeDetector && window.BarcodeDetector.getSupportedFormats) {
+          window.BarcodeDetector.getSupportedFormats().then(function (f) {
+            if (f.indexOf('qr_code') !== -1) CAM.detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+          }).catch(function () {});
+        }
+      } catch (err) {}
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      CAM.help = 'This browser cannot use the camera. Open this page in <b>Chrome</b> (Android) or <b>Safari</b> (iPhone), not inside Facebook / Messenger.';
+      $('#camwrap').innerHTML = camHtml(); return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(function (stream) {
+      CAM.stream = stream; CAM.on = true; CAM.last = {};
+      $('#camwrap').innerHTML = camHtml(); attachVideo(); wake(); loop();
+    }).catch(function (err) {
+      var ios = /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+      CAM.help = /NotAllowed|Security|Permission/.test((err && err.name) || '')
+        ? '<b>Camera permission is off.</b> ' + (ios ? 'iPhone: Settings → Safari → Camera → Allow, then reload.' : 'Android: tap the icon left of the web address → Permissions → Camera → Allow, then reload.')
+        : /NotReadable|TrackStart/.test((err && err.name) || '') ? '<b>Another app is using the camera.</b> Close it and try again.'
+        : '<b>The camera could not start</b> (' + esc((err && err.name) || 'error') + '). Reload and try again, or type the bib number.';
+      $('#camwrap').innerHTML = camHtml();
+    });
+  }
+
+  function camStop() {
+    CAM.on = false;
+    clearTimeout(CAM.timer);
+    if (CAM.stream) CAM.stream.getTracks().forEach(function (t) { t.stop(); });
+    CAM.stream = null; CAM.video = null;
+    if ($('#camwrap')) $('#camwrap').innerHTML = camHtml();
+  }
+
+  function loop() {
+    if (!CAM.on) return;
+    var v = CAM.video;
+    if (v && v.readyState >= 2 && v.videoWidth) decode(v).then(function (t) { if (t) found(t); }).catch(function () {});
+    CAM.timer = setTimeout(loop, 250);
+  }
+
+  function decode(v) {
+    if (CAM.detector) {
+      return CAM.detector.detect(v).then(function (c) { return c && c.length ? c[0].rawValue : ''; }).catch(function () { CAM.detector = false; return ''; });
+    }
+    if (!window.jsQR) return Promise.resolve('');
+    var scale = Math.min(1, 720 / v.videoWidth), w = Math.round(v.videoWidth * scale), h = Math.round(v.videoHeight * scale);
+    var c = CAM.canvas || (CAM.canvas = document.createElement('canvas'));
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(v, 0, 0, w, h);
+    var r = window.jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+    return Promise.resolve(r ? r.data : '');
+  }
+
+  function overlay(text, kind, ms) {
+    var el = $('#overlay');
+    if (!el) return;
+    el.textContent = text; el.className = 'overlay' + (kind ? ' ' + kind : '');
+    clearTimeout(CAM.msgTimer);
+    CAM.msgTimer = setTimeout(function () {
+      var e2 = $('#overlay'); if (e2) { e2.textContent = 'Point the camera at the QR code on the bib'; e2.className = 'overlay'; }
+    }, ms || 2500);
+  }
+
+  function beep(ok) {
+    try {
+      var a = CAM.audio; if (!a) return;
+      var o = a.createOscillator(), g = a.createGain();
+      o.frequency.value = ok ? 1320 : 330; g.gain.value = 0.15;
+      o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + (ok ? 0.12 : 0.35));
+    } catch (err) {}
+  }
+
+  function found(text) {
+    var link = parseLink(text), now = Date.now();
+    if (!link) {
+      if (!CAM.lastBad || now - CAM.lastBad > 3000) { CAM.lastBad = now; overlay('That QR code is not a race bib', 'bad'); beep(false); }
+      return;
+    }
+    if (CAM.last[link.bib] && now - CAM.last[link.bib] < 20000) return;   // same runner still in front of the camera
+    CAM.last[link.bib] = now;
+    record(link.bib, link.code);
+    overlay('✅ Bib ' + link.bib + ' scanned', 'good'); beep(true);
+    try { if (navigator.vibrate) navigator.vibrate(120); } catch (err) {}
+  }
+
+  function camResult(e) {
+    if (!CAM.on || !e) return;
+    var good = /^(OK|FINISHED|STARTED)$/.test(e.code) && !(e.warnings && e.warnings.length);
+    var who = e.bib + (e.name ? ' ' + e.name : '');
+    var t = {
+      OK: '✅ ' + who + ' – checked in', FINISHED: '🏁 ' + who + ' – finished' + (e.rank ? ' #' + e.rank : ''),
+      STARTED: '🟢 ' + who + ' – started', FINISHED_NO_TURN: '⚠️ ' + who + ' – no turning point record',
+      DUPLICATE: '⚠️ ' + e.bib + ' already checked in', DUPLICATE_FINISH: '⚠️ ' + e.bib + ' already finished',
+      DUPLICATE_START: '⚠️ ' + e.bib + ' already started', WRONG_CATEGORY: '⚠️ ' + who + ' – wrong turning point',
+      NOT_REGISTERED: '❌ ' + e.bib + ' is not registered', INVALID_QR: '❌ Fake or old QR on bib ' + e.bib
+    }[e.code] || ('❌ ' + e.bib + ' not saved');
+    overlay(t, good ? 'good' : 'bad', good ? 2500 : 5000);
+    if (!good) beep(false);
+  }
+
+  var lock = null;
+  function wake() {
+    if (!navigator.wakeLock || lock) return;
+    navigator.wakeLock.request('screen').then(function (l) { lock = l; l.addEventListener('release', function () { lock = null; }); }).catch(function () {});
+  }
+
+  // ---------- events ----------
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-pick]');
+    if (t) { S.pick = t.getAttribute('data-pick'); S.error = ''; document.querySelectorAll('.pick').forEach(function (b) { b.classList.toggle('on', b === t); }); var p = $('#pin'); if (p) p.focus(); return; }
+    t = e.target.closest('[data-sendnow]');
+    if (t) { S.fails = 0; clearTimeout(S.retryTimer); pump(); return; }
+    t = e.target.closest('[data-cam]');
+    if (t) { if (t.getAttribute('data-cam') === 'start') camStart(); else camStop(); return; }
+    t = e.target.closest('[data-undo]');
+    if (t) { undo(t.getAttribute('data-undo')); return; }
+    t = e.target.closest('[data-logout]');
+    if (t) {
+      if (S.queue.length) { alertNote(S.queue.length + ' scan(s) still waiting to send. Stay on this station until they are sent.'); return; }
+      camStop(); S.pin = ''; S.station = null; S.pick = ''; S.stations = null; save(); render(); return;
+    }
+    t = e.target.closest('[data-reset-api]');
+    if (t) { S.api = ''; S.stations = null; save(); render(); }
+  });
+
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (e.target.id === 'f-api') {
+      var u = String($('#api').value || '').trim().replace(/[?#].*$/, '').replace(/\/u\/\d+\//, '/');
+      if (!validApi(u)) { S.error = 'That link must start with https://script.google.com/ and end with /exec.'; render(); return; }
+      S.api = u; S.error = ''; S.stations = null; save(); render();
+    }
+    if (e.target.id === 'f-login') {
+      var pin = String($('#pin').value || '').trim();
+      S.staff = String($('#staff').value || '').trim().slice(0, 40);
+      if (!S.pick) { S.error = 'Pick your station first.'; render(); return; }
+      if (!pin) { S.error = 'Enter your station PIN.'; render(); return; }
+      api('login', { station: S.pick, pin: pin }).then(function (res) {
+        if (res && res.ok) { S.station = res.station; S.pin = pin; S.error = ''; save(); render(); pump(); }
+        else { S.error = (res && res.error) || 'Could not sign in.'; render(); }
+      }).catch(function () { S.error = 'No connection. Try again when you have signal.'; render(); });
+    }
+    if (e.target.id === 'f-bib') {
+      var input = $('#bib'), raw = String(input.value || ''), link = parseLink(raw);
+      input.value = '';
+      if (link) record(link.bib, link.code); else record(raw.replace(/\D/g, ''), '');
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'bib') { var l = parseLink(e.target.value); if (l && l.code) { e.target.value = ''; record(l.bib, l.code); } }
+  });
+  window.addEventListener('online', function () { S.fails = 0; clearTimeout(S.retryTimer); pump(); });   // back online → send at once
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { pump(); if (CAM.on) wake(); } });
+  setInterval(function () {
+    var c = $('#clock'); if (c) c.textContent = clock(Date.now());
+    if (S.queue.length && !S.sending && (S.offline || S.lastError)) { var p = $('#pending'); if (p) p.innerHTML = pendingHtml(); }
+  }, 1000);
+
+  // ---------- start ----------
+  load();
+  var h = location.hash.match(/api=([^&]+)/);            // link from the event website carries its address
+  if (h) {
+    var u = decodeURIComponent(h[1]);
+    if (validApi(u) && u !== S.api) { S.api = u; S.stations = null; S.station = null; S.pin = ''; }
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (err) {}
+    save();
+  }
+  render();
+  pump();
+})();
+</script>
+</body>
+</html>
